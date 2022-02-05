@@ -1,6 +1,16 @@
 from django.db import models
 from django.conf import settings
+from django.shortcuts import get_object_or_404
 from mainapp.models import Product
+
+
+class BasketQuerySet(models.QuerySet):
+
+    def delete(self, *args, **kwargs):
+        for object in self:
+            object.product.quantity += object.quantity
+            object.product.save()
+        super(BasketQuerySet, self).delete(*args, **kwargs)
 
 
 class Basket(models.Model):
@@ -12,7 +22,21 @@ class Basket(models.Model):
     add_datetime = models.DateTimeField(
         verbose_name='время', auto_now_add=True)
 
-    ...
+    objects = BasketQuerySet.as_manager()
+
+    def delete(self):
+        self.product.quantity += self.quantity
+        self.product.save()
+        super(self.__class__, self).delete()
+
+    def save(self, *args, **kwargs):
+        if self.pk:
+            self.product.quantity -= self.quantity - \
+                self.__class__.get_item(self.pk).quantity
+        else:
+            self.product.quantity -= self.quantity
+        self.product.save()
+        super(self.__class__, self).save(*args, **kwargs)
 
     @property
     def product_cost(self):
@@ -36,3 +60,7 @@ class Basket(models.Model):
     @classmethod
     def get_items(self, user):
         return Basket.objects.filter(user=user)
+
+    @classmethod
+    def get_item(self, pk):
+        return get_object_or_404(Basket, pk=pk)

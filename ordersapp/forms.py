@@ -1,5 +1,7 @@
+from itertools import product
 from django import forms
 from ordersapp.models import Order, OrderItem
+from mainapp.models import Product
 
 
 class OrderForm(forms.ModelForm):
@@ -11,9 +13,12 @@ class OrderForm(forms.ModelForm):
         super(OrderForm, self).__init__(*args, **kwargs)
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
+        self.fields['product'].queryset = Product.get_items()
 
 
 class OrderItemForm(forms.ModelForm):
+    price = forms.CharField(label='цена', required=False)
+
     class Meta:
         model = OrderItem
         exclude = ()
