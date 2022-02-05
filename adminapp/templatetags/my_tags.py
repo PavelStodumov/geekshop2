@@ -15,6 +15,9 @@ def media_folder_products(string):
     return f'{settings.MEDIA_URL}{string}'
 
 
+register.filter('media_folder_products', media_folder_products)
+
+
 @register.filter(name='media_folder_users')
 def media_folder_users(string):
     """
