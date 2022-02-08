@@ -2,7 +2,6 @@ from django.shortcuts import render
 from .models import ProductCategory, Product
 from django.shortcuts import get_object_or_404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from basketapp.models import Basket
 import random
 
 
@@ -11,13 +10,6 @@ MENU = [
     {'name': 'Продукты', 'href': 'products:index'},
     {'name': 'Контакты', 'href': 'contact'}
 ]
-
-
-def get_basket(user):
-    if user.is_authenticated:
-        return Basket.objects.filter(user=user)
-    else:
-        return []
 
 
 def get_hot_product():
@@ -35,14 +27,12 @@ def get_same_products(hot_product):
 
 def main(request):
     title = 'главная'
-    basket = get_basket(request.user)
 
     products = Product.objects.all()[:4]
     content = {
         'title': title,
         'products': products,
         'main_menu': MENU,
-        'basket': basket
 
     }
     return render(request, 'mainapp/index.html', content)
@@ -51,8 +41,6 @@ def main(request):
 def products(request, pk=None, page=1):
     title = 'продукты'
     links_menu = ProductCategory.objects.all()
-    basket = get_basket(request.user)
-
     hot_product = get_hot_product()
     same_products = get_same_products(hot_product)
 
@@ -81,7 +69,6 @@ def products(request, pk=None, page=1):
             'category': category,
             'products': products_paginator,
             'main_menu': MENU,
-            'basket': basket
         }
         # import pdb
         # pdb.set_trace()
@@ -96,7 +83,6 @@ def products(request, pk=None, page=1):
         'main_menu': MENU,
         'hot_product': hot_product,
         'same_products': same_products,
-        'basket': basket
     }
     return render(request, 'mainapp/products.html', content)
 
@@ -108,7 +94,6 @@ def product(request, pk):
         'title': title,
         'links_menu': ProductCategory.objects.all(),
         'product': get_object_or_404(Product, pk=pk),
-        'basket': get_basket(request.user),
         'main_menu': MENU,
 
     }
@@ -118,12 +103,10 @@ def product(request, pk):
 
 def contact(request):
     title = 'Контакты'
-    basket = get_basket(request.user)
 
     content = {
         'title': title,
         'main_menu': MENU,
-        'basket': basket
 
     }
     return render(request, 'mainapp/contact.html', content)
